@@ -4,6 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webex Connect Chat Test</title>
+    <style>
+        /* ---------- "Chat with Agent" card, bottom-left ---------- */
+        #chat-launcher-card {
+            position: fixed;
+            left: 24px;
+            bottom: 24px;
+            width: 240px;
+            padding: 20px 16px 16px;
+            background: #f2f2f2;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+            text-align: center;
+            z-index: 99998;
+        }
+        #chat-launcher-card .chat-icon { width: 28px; height: 28px; color: #333; }
+        #chat-launcher-card h3 { margin: 8px 0 4px; font-size: 16px; font-weight: 400; color: #222; }
+        #chat-launcher-card .call-text { margin: 0 0 14px; font-size: 12px; color: #555; }
+        #begin-chat-btn {
+            padding: 6px 16px;
+            font-size: 13px;
+            background: #fff;
+            border: 1px solid #999;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        #begin-chat-btn:hover { background: #e8e8e8; }
+        #begin-chat-btn:disabled { cursor: wait; opacity: 0.6; }
+    </style>
 </head>
 
 <body>
@@ -11,7 +41,83 @@
     <h1>Chat Test Page</h1>
     <p>This is a test page for the Webex Connect chat widget.</p>
 
-    <!-- Webex Connect Chat Widget -->
-<div id="divicw" data-bind="08EC0F6A-B6A6-4AEA-BA1C-6B89B32BC141" data-org="" data-guid="aacb576a-37cb-4ba3-844c-9f375f87aab1"></div><script>var i={t:function(){try{var e=document.getElementById("divicw"),t=document.createElement("script");t.src="https://chat-widget.produs1.ciscoccservice.com/js/imichatinit.js?t="+new Date().toISOString(),e.insertAdjacentElement("afterend",t),t.addEventListener("load",function(){console.log(new Date().toISOString(),"Livechat script loaded successfully!")}),t.addEventListener("error",function(){console.log(new Date().toISOString(),"Error loading Livechat script");i.o(e)})}catch(e){console.error(e)}},o:function(e){e.insertAdjacentHTML("afterend",'<iframe id="tls_al_frm" frameborder="0" style="overflow:hidden;height:208px;width:394px;position:fixed;display:block;right:48px;bottom:12px;z-index:99999;display:none;"></iframe>');var t=document.getElementById("tls_al_frm"),n=t.contentWindow,d=n.document;d.open();d.write("<!doctype html><html><head><meta charset='utf-8'><title>Untitled Document</title><style>body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#99a0b0;font-size:14px}.popover__content{background-color:#fbfbfe;padding:1.5rem;border-radius:5px;width:300px;box-shadow:0 2px 5px 0 rgba(0,0,0,0.26);position:relative}.popover__message{font-weight:600;color:#56627c;font-size:16px}.pull-left{float:left}.clearfix{clear:both}.hdr-txt{width:218px;margin-top:3px}.para-txt a{text-decoration:none;color:#005cde}.close-btn{position:absolute;right:15px;top:15px}.close-btn a{text-decoration:none;font-weight:400;color:#56627c;font-size:16px}</style></head><body><div class='popover__content'><div class='close-btn'><a href='#' onclick='closeTLSAlert()'>X</a></div><div class='popover__message'><div class='pull-left hdr-txt'>This browser version is not supported on LiveChat.</div></div><div class='clearfix'></div><p class='para-txt'>Please update your browser to the latest version and re-open the website to access the widget.</p></div><script>function closeTLSAlert(){window.parent.postMessage({key:'close_tls_alert',value:'close_tls_alert',action:'close_tls_alert'},'*');}<\/script></body></html>");d.close();t.style.display='block';window.addEventListener('message',function(e){'close_tls_alert'===e.data.action&&i.s()})},s:function(){var e=document.getElementById('tls_al_frm');e&&e.remove()}};i.t();</script>
+    <!-- Custom launcher card -->
+    <div id="chat-launcher-card">
+        <svg class="chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M4 4h12v9H8l-4 3V4z"/>
+            <path d="M16 8h4v10l-3-2.5H9V13"/>
+        </svg>
+        <h3>Chat with Agent</h3>
+        <button id="begin-chat-btn" type="button">Begin Chat</button>
+    </div>
+
+    <!-- Webex Connect widget container (script is NOT loaded until Begin Chat is clicked) -->
+    <div id="divicw" data-bind="08EC0F6A-B6A6-4AEA-BA1C-6B89B32BC141" data-org="" data-guid="aacb576a-37cb-4ba3-844c-9f375f87aab1"></div>
+
+    <script>
+    (function () {
+        /*
+         * OPTIONAL: CSS selector of the widget's own launcher bubble.
+         * If set, it will be auto-clicked so the chat window opens right away.
+         * Find it with browser DevTools (right-click the bubble > Inspect) after
+         * the widget loads, e.g. '#someLauncherId'. Leave '' to just show the bubble.
+         */
+        var LAUNCHER_SELECTOR = '';
+
+        var btn = document.getElementById('begin-chat-btn');
+        var card = document.getElementById('chat-launcher-card');
+        var loaded = false;
+
+        btn.addEventListener('click', function () {
+            if (loaded) { openWidget(); return; }
+            btn.disabled = true;
+            btn.textContent = 'Connecting...';
+            loadWidget();
+        });
+
+        function loadWidget() {
+            var container = document.getElementById('divicw');
+            var s = document.createElement('script');
+            s.src = 'https://chat-widget.produs1.ciscoccservice.com/js/imichatinit.js?t=' + new Date().toISOString();
+            s.addEventListener('load', function () {
+                loaded = true;
+                console.log(new Date().toISOString(), 'Livechat script loaded successfully!');
+                card.style.display = 'none';   // hide our card once the widget is live
+                openWidget();
+            });
+            s.addEventListener('error', function () {
+                console.log(new Date().toISOString(), 'Error loading Livechat script');
+                btn.disabled = false;
+                btn.textContent = 'Begin Chat';
+                showUnsupportedAlert(container);
+            });
+            container.insertAdjacentElement('afterend', s);
+        }
+
+        // Waits for the widget's launcher to render, then clicks it (if a selector is configured)
+        function openWidget() {
+            if (!LAUNCHER_SELECTOR) return;
+            var tries = 0;
+            var timer = setInterval(function () {
+                var el = document.querySelector(LAUNCHER_SELECTOR);
+                if (el) { clearInterval(timer); el.click(); }
+                else if (++tries > 50) { clearInterval(timer); } // give up after ~10s
+            }, 200);
+        }
+
+        // Original "browser not supported" fallback from the Webex snippet
+        function showUnsupportedAlert(e) {
+            e.insertAdjacentHTML('afterend', '<iframe id="tls_al_frm" frameborder="0" style="overflow:hidden;height:208px;width:394px;position:fixed;right:48px;bottom:12px;z-index:99999;display:none;"></iframe>');
+            var t = document.getElementById('tls_al_frm'), d = t.contentWindow.document;
+            d.open();
+            d.write("<!doctype html><html><head><meta charset='utf-8'><style>body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#99a0b0;font-size:14px}.popover__content{background-color:#fbfbfe;padding:1.5rem;border-radius:5px;width:300px;box-shadow:0 2px 5px 0 rgba(0,0,0,0.26);position:relative}.popover__message{font-weight:600;color:#56627c;font-size:16px}.close-btn{position:absolute;right:15px;top:15px}.close-btn a{text-decoration:none;color:#56627c;font-size:16px}</style></head><body><div class='popover__content'><div class='close-btn'><a href='#' onclick='closeTLSAlert()'>X</a></div><div class='popover__message'>This browser version is not supported on LiveChat.</div><p>Please update your browser to the latest version and re-open the website to access the widget.</p></div><script>function closeTLSAlert(){window.parent.postMessage({action:'close_tls_alert'},'*');}<\/script></body></html>");
+            d.close();
+            t.style.display = 'block';
+            window.addEventListener('message', function (ev) {
+                if (ev.data && ev.data.action === 'close_tls_alert') { var f = document.getElementById('tls_al_frm'); f && f.remove(); }
+            });
+        }
+    })();
+    </script>
 </body>
 </html>
